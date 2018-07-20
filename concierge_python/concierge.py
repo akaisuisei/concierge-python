@@ -48,7 +48,7 @@ class Concierge:
         self.publish(Topic.timerLed, '{"duration":%s}' % duration)
 
     def publishPong(self, app):
-        self.publish(Topic.livePong, app)
+        self.publish(Topic.livePong, '{"result":"%s"}' % app)
     def publishTime(self, value):
         self.publish(Topic.timeLed, '{"duration":%s}' % value)
 
