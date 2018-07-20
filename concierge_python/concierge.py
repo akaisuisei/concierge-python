@@ -1,6 +1,7 @@
 import json
 import requests
 import paho.mqtt.client as mqtt
+import utils
 
 class Topic():
 
@@ -10,8 +11,10 @@ class Topic():
     livePong = '{}/pong'.format(live)
     viewPing = '{}/ping'.format(view)
     viewPong = '{}/pong'.format(view)
-    timerLed = 'concierge/feedback/led/default/timer'
-    timeLed = 'concierge/feedback/led/default/timer'
+    led = 'concierge/feedback/led/default/'
+    timerLed = '{}timer'.format(led)
+    timeLed = '{}timer'.format(led)
+    weatherLed = '{}weather'.format(led)
     @staticmethod
     def getViewPong(appId):
         return Topic.viewPong.format(appId)
@@ -61,7 +64,13 @@ class Concierge:
         payload = json.dumps({"result": app })
         self.publish(Topic.livePong, payload)
     def publishTime(self, value):
-        self.publish(Topic.timeLed, '{"duration":%s}' % value)
+        self.publish(Topic.timeLed, json.dumps({"duration":duration}))
+
+    def publishWeather(self, cond, temp):
+        self.publish(Topic.timeLed, json.dumps({
+            "weather": cond,
+            "temp": temp
+        }))
 
     def publishStopLed(self):
         self.publish('concierge/feedback/led/default/stop', '')
@@ -75,12 +84,17 @@ class Concierge:
 
     def on_message(self, client, userdata, msg):
         print(msg.topic)
+    def play_wave(self, siteId, requestId, filename):
+        utils.play_wave(self._client, siteId, requestId, filename)
 
     @staticmethod
     def getLang(default = "FR"):
         try:
-            res = requests.get("http://localhost:3000/assistant/lang").json;
-            return res.response
+            tmp = requests.get("http://localhost:3000/assistant/lang");
+            print(tmp)
+            if (not tmp.ok):
+                return default
+            return json.loads(tmp.text).upper().encode('ascii', 'ignore')
         except :
             return default
 
