@@ -1,3 +1,4 @@
+import json
 import requests
 import paho.mqtt.client as mqtt
 
@@ -6,7 +7,7 @@ class Topic():
     live = 'concierge/apps/live'
     view = 'concierge/apps/{}/view'
     livePing = '{}/ping'.format(live)
-    livePong = '{}/pong'
+    livePong = '{}/pong'.format(live)
     viewPing = '{}/ping'.format(view)
     viewPong = '{}/pong'.format(view)
     timerLed = 'concierge/feedback/led/default/timer'
@@ -38,17 +39,27 @@ class Concierge:
         if (func):
             self._client.message_callback_add(Topic.livePing, func)
 
+    def subscribeView(self, id, func):
+        if (func and id and id != ""):
+            self.subscribe(Topic.getViewPing(id), func)
+
     def unsubscribe(self, topic):
         self._client.unsubscribe(topic)
 
     def publish(self, topic, msg):
+        print("{} on {}".format(msg, topic))
         self._client.publish(topic, msg)
 
     def publishTimer(self, duration):
-        self.publish(Topic.timerLed, '{"duration":%s}' % duration)
+        self.publish(Topic.timerLed, json.dumps({"duration":duration}))
+
+    def publishView(self, id, payload):
+        payload = {"result": payload}
+        self.publish(Topic.getViewPong(id), json.dumps(payload))
 
     def publishPong(self, app):
-        self.publish(Topic.livePong, '{"result":"%s"}' % app)
+        payload = json.dumps({"result": app })
+        self.publish(Topic.livePong, payload)
     def publishTime(self, value):
         self.publish(Topic.timeLed, '{"duration":%s}' % value)
 
