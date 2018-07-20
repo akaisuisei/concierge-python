@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(
-    name='concierge-python',
+    name='concierge_python',
     version='0.0.1',
     description='concierge helper for Snips',
     author='Snips Labs',
@@ -10,9 +10,11 @@ setup(
     download_url='',
     license='MIT',
     install_requires=[
-        'requests==2.6.0'
+        'requests==2.6.0',
+        'hermes_python',
+        'paho-mqtt'
     ],
     keywords=['snips'],
-    packages=['concierge-python'],
+    packages=['concierge_python'],
     include_package_data=True
 )
