@@ -11,7 +11,6 @@ setup(
     license='MIT',
     install_requires=[
         'requests==2.6.0',
-        'hermes_python',
         'paho-mqtt'
     ],
     keywords=['snips'],
