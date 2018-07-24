@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='concierge_python',
-    version='0.0.1.2',
+    version='0.0.1.3',
     description='concierge helper for Snips',
     author='Snips Labs',
     author_email='labs@snips.ai',
@@ -11,7 +11,8 @@ setup(
     license='MIT',
     install_requires=[
         'requests',
-        'paho-mqtt'
+        'paho-mqtt',
+        'events'
     ],
     keywords=['snips'],
     packages=['concierge_python'],
