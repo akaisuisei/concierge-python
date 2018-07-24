@@ -10,7 +10,7 @@ setup(
     download_url='',
     license='MIT',
     install_requires=[
-        'requests==2.6.0',
+        'requests',
         'paho-mqtt'
     ],
     keywords=['snips'],
