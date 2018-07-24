@@ -1,3 +1,4 @@
+from events import Events
 import json
 import requests
 import paho.mqtt.client as mqtt
@@ -18,7 +19,7 @@ class Topic():
         _stop = '{}/stop'.format(_led)
         _swipe = '{}/swipe'.format(_led)
         _timer = '{}timer'.format(_led)
-        _time = '{}timer'.format(_led)
+        _time = '{}time'.format(_led)
         _weather = '{}weather'.format(_led)
         @staticmethod
         def add_image(siteId):
@@ -75,51 +76,140 @@ class Concierge:
     def __init__(self, hostname, siteId = "default", start = True):
         self._client = mqtt.Client()
         self._client.on_connect = self.on_connect
-        self._client.on_message = self.on_message
         self._client.connect(hostname)
         self.topics = []
         self._siteId =  siteId
+        self.event = Events(('on_ping',
+                             'on_view',
+                             'on_time',
+                             'on_timer',
+                             'on_animation',
+                            'on_weather',
+                            'on_stop',
+                            'on_rotary',
+                            'on_swipe',
+                            'on_image'))
         if start:
             self._client.loop_forever()
 
     def loop_forever(self):
         self._client.loop_forever()
 
+
+    def disconnect(self):
+        self._client.disconnect()
+
+    """
+    Mqtt callback
+    """
+
+    def on_connect(self, client, userdata, flags, rc):
+        for t in self.topics:
+            client.subscribe(t)
+
+    @staticmethod
+    def get_value(json_payload, key = 'value'):
+        try:
+            data = json.loads(json_payload)
+        except:
+            return None
+        return data.get(key, None)
+    def _on_ping(self, client, userdata, msg):
+        self.event.on_ping()
+    def _on_stop(self, client, userdata, msg):
+        self.event.on_stop()
+    def _on_view(self, client, userdata, msg):
+        self.event.on_view()
+    def _on_time(self, client, userdata, msg):
+        duration = Concierge.get_value(msg.payload, 'duration')
+        duration = Concierge.get_value(msg.payload, 'value')
+        self.event.on_time(duration, 0)
+    def _on_animation(self, client, userdata, msg):
+        duration = Concierge.get_value(msg.payload, 'duration')
+        animation = Concierge.get_value(msg.payload, 'animation')
+        self.event.on_animation(animation, duration)
+    def _on_timer(self, client, userdata, msg):
+        duration = Concierge.get_value(msg.payload, 'value')
+        self.event.on_timer(duration)
+    def _on_rotary(self, client, userdata, msg):
+        self.event.on_rotary(int(msg.payload))
+    def _on_swipe(self, client, userdata, msg):
+        self.event.on_swipe(msg.payload)
+    def _on_weather(self, client, userdata, msg):
+        temp = Concierge.get_value(msg.payload, 'temp')
+        cond = Concierge.get_value(msg.payload, 'weather')
+        self.event.on_weather(temp, cond)
+
+    def _on_image(self, client, userdata, msg):
+        tmp = msg.topic.split('/')
+        name = tmp [-1]
+        directory = tmp[-2]
+        if (tmp[-3] != 'add'):
+            return
+        image = msg.payload
+        self.event.on_image(name, directory, image)
+    """
+    Subscribe
+    """
     def subscribe(self, topic, func = None):
         self._client.subscribe(topic)
         self.topics += [topic]
         if (func):
             self._client.message_callback_add(topic, func)
-
+    def subscribeAnimation(self, func):
+        if (func):
+            self.event.on_animation += func
+            self.subscribe(Topic.Led.animation(self._siteId), self._on_animation)
     def subscribePing(self, func = None):
         if (func):
-            self._client.message_callback_add(Topic.Apps.livePing, func)
+            self.event.on_ping += func
+            self.subscribe(Topic.Apps.livePing, self._on_ping)
+
     def subscribeView(self, func):
-            self.subscribe(Topic.Apps.viewPing(self._siteId), func)
+        if (func):
+            self.event.on_view += func
+            self.subscribe(Topic.Apps.viewPing(self._siteId), self._on_view )
 
     def subscribeTime(self, func):
-            self.subscribe(Topic.Led.time(self._siteId), func)
+        if (func):
+            self.event.on_time += func
+            self.subscribe(Topic.Led.time(self._siteId), self._on_time)
     def subscribeTimer(self, func):
-            self.subscribe(Topic.Led.timer(self._siteId), func)
-    def subscribeAnimation(self, func):
-            self.subscribe(Topic.Led.animation(self._siteId), func)
+        if (func):
+            self.event.on_timer += func
+            self.subscribe(Topic.Led.timer(self._siteId), self._on_timer)
     def subscribeWeather(self, func):
-            self.subscribe(Topic.Led.weather(self._siteId), func)
+        if (func):
+            self.event.on_weather += func
+            self.subscribe(Topic.Led.weather(self._siteId), self._on_weather)
     def subscribeStop(self, func):
-            self.subscribe(Topic.Led.stop(self._siteId), func)
+        if (func):
+            self.event.on_stop += func
+            self.subscribe(Topic.Led.stop(self._siteId), self._on_stop)
     def subscribeRotary(self, func):
-            self.subscribe(Topic.Led.rotary(self._siteId), func)
+        if (func):
+            self.event.on_rotary += func
+            self.subscribe(Topic.Led.rotary(self._siteId), self._on_rotary)
     def subscribeSwipe(self, func):
-            self.subscribe(Topic.Led.swipe(self._siteId), func)
+        if (func):
+            self.event.on_swipe += func
+            self.subscribe(Topic.Led.swipe(self._siteId), self._on_swipe)
     def subscribeImage(self, func):
-            self.subscribe(Topic.Led.add_image(self._siteId), func)
+        if (func):
+            self.event.on_image += func
+            self.subscribe(Topic.Led.add_image(self._siteId), self._on_image)
+
+    """
+    Publish
+    """
+
 
     def publish(self, topic, msg):
         print("{} on {}".format(msg, topic))
         self._client.publish(topic, msg)
 
     def publishTimer(self, duration):
-        self.publish(Topic.timerLed, json.dumps({"duration":duration}))
+        self.publish(Topic.timerLed, json.dumps({"value":duration}))
 
     def publishView(self, _id, payload):
         payload = {"result": payload}
@@ -130,7 +220,8 @@ class Concierge:
         self.publish(Topic.Apps.pong, payload)
 
     def publishTime(self, value):
-        self.publish(Topic.Led.time, json.dumps({"duration":duration}))
+        self.publish(Topic.Led.time, json.dumps({"duration":duration,
+                                                 "value" : 0}))
 
     def publishWeather(self, cond, temp):
         self.publish(Topic.Led.weather(self._siteId), json.dumps({
@@ -145,6 +236,15 @@ class Concierge:
     def publishSwipe(self, value):
         self.publish(Topic.Led.swipe(self._siteId), value)
 
+    def publishImage(self, filename, dir_, name):
+        with open(filename, "r") as f:
+            content = f.read()
+            client.publish(Topic.Led.add_image_send(self.siteId, dir_, name),
+                           bytearray(content))
+    """
+    utilities
+    """
+
     def play_wave(self, siteId, requestId, filename):
         utils.play_wave(self._client, siteId, requestId, filename)
     def startHotword(self, modelId = 'default'):
@@ -155,21 +255,7 @@ class Concierge:
         self.publish("hermes/asr/stopListening",
                    json.dumps({"siteId" : self.siteId,
                                "sessionId" : sessionId}))
-    def publishImage(self, filename, dir_, name):
-        with open(filename, "r") as f:
-            content = f.read()
-            client.publish(Topic.Led.add_image_send(self.siteId, dir_, name),
-                           bytearray(content))
 
-    def on_connect(self, client, userdata, flags, rc):
-        for t in self.topics:
-            client.subscribe(t)
-
-    def on_message(self, client, userdata, msg):
-        print(msg.topic)
-
-    def disconnect(self):
-        self._client.disconnect()
 
     @staticmethod
     def getLang(default = "FR"):
