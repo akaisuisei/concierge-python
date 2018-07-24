@@ -13,11 +13,11 @@ def p_subscribe(topic):
 class Topic():
     class Led():
         _led = 'concierge/feedback/led/{}/'
-        _add_image = '{}/add/'.format(_led)
-        _animation = '{}/animation'.format(_led)
-        _rotary = '{}/rotary'.format(_led)
-        _stop = '{}/stop'.format(_led)
-        _swipe = '{}/swipe'.format(_led)
+        _add_image = '{}add/'.format(_led)
+        _animation = '{}animation'.format(_led)
+        _rotary = '{}rotary'.format(_led)
+        _stop = '{}stop'.format(_led)
+        _swipe = '{}swipe'.format(_led)
         _timer = '{}timer'.format(_led)
         _time = '{}time'.format(_led)
         _weather = '{}weather'.format(_led)
@@ -90,7 +90,7 @@ class Concierge:
                             'on_swipe',
                             'on_image'))
         if start:
-            self._client.loop_forever()
+            self._client.loop_start()
 
     def loop_forever(self):
         self._client.loop_forever()
@@ -249,13 +249,12 @@ class Concierge:
         utils.play_wave(self._client, siteId, requestId, filename)
     def startHotword(self, modelId = 'default'):
         self.publish("hermes/hotword/default/detected",
-                   json.dumps({"siteId" : self.siteId,
+                   json.dumps({"siteId" : self._siteId,
                                "modelId" : modelId}))
     def stopHotword(self, sessionId):
         self.publish("hermes/asr/stopListening",
-                   json.dumps({"siteId" : self.siteId,
+                   json.dumps({"siteId" : self._siteId,
                                "sessionId" : sessionId}))
-
 
     @staticmethod
     def getLang(default = "FR"):
