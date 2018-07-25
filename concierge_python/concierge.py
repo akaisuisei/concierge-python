@@ -239,7 +239,7 @@ class Concierge:
         if (siteId is None):
             siteId = self._siteId
         self.publish(Topic.Led.stop(siteId), '')
-    def publishRotary(self, siteId = None):
+    def publishRotary(self, value, siteId = None):
         if (siteId is None):
             siteId = self._siteId
         self.publish(Topic.Led.rotary(siteId), value)
