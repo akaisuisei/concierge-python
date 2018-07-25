@@ -37,22 +37,27 @@ class Extract:
         return Extract._getFirst(slots, default, Extract.values)
 
     @staticmethod
+    def _str_to_datetime(value):
+        value = value[:-7]
+        try:
+            return datetime.strptime(value, '%Y-%m-%d %H:%M:%S')
+        except:
+            value = value[:-3]
+            return datetime.strptime(value, '%Y-%m-%d %H:%M:%S.%f')
+    @staticmethod
     def timeSlots(slots):
         tag = []
         if slots is not None:
             for slot in slots:
                 value = slot.slot_value.value
                 if type(value) == hermes_python.ontology.TimeIntervalValue :
-                    t0 = value.from_date[:-7]
-                    t0 = datetime.strptime(t0, '%Y-%m-%d %H:%M:%S')
-                    t1 = value.to_date[:-7]
-                    t1 = datetime.strptime(t1, '%Y-%m-%d %H:%M:%S')
+                    t0 = Extract._str_to_datetime(value.from_date)
+                    t1 = Extract._str_to_datetime(value.to_date)
                     delta = t1 - t0
                     tmp = t0 + delta / 2
                     tag.append(tmp)
                 if type(value) == hermes_python.ontology.InstantTimeValue :
-                    tmp = value.value[:-7]
-                    tmp = datetime.strptime(tmp, '%Y-%m-%d %H:%M:%S')
+                    tmp = Extract._str_to_datetime(value.value)
                     tag.append(tmp)
         return tag
 

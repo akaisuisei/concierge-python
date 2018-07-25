@@ -208,7 +208,9 @@ class Concierge:
         print("{} on {}".format(msg, topic))
         self._client.publish(topic, msg)
 
-    def publishTimer(self, duration, siteId = self._siteId):
+    def publishTimer(self, duration, siteId = None):
+        if (siteId is None):
+            siteId = self._siteId
         self.publish(Topic.Led.timer(siteId), json.dumps({"value":duration}))
 
     def publishView(self, _id, payload):
@@ -219,24 +221,36 @@ class Concierge:
         payload = json.dumps({"result": app })
         self.publish(Topic.Apps.pong, payload)
 
-    def publishTime(self, value, siteId = self._siteId):
+    def publishTime(self, value, siteId = None):
+        if (siteId is None):
+            siteId = self._siteId
         self.publish(Topic.Led.time(siteId), json.dumps({"duration":duration,
                                                  "value" : 0}))
 
-    def publishWeather(self, cond, temp, siteId = self._siteId):
+    def publishWeather(self, cond, temp, siteId = None):
+        if (siteId is None):
+            siteId = self._siteId
         self.publish(Topic.Led.weather(siteId), json.dumps({
             "weather": cond,
             "temp": temp
         }))
 
-    def publishStopLed(self, siteId = self._siteId):
+    def publishStopLed(self, siteId = None):
+        if (siteId is None):
+            siteId = self._siteId
         self.publish(Topic.Led.stop(siteId), '')
-    def publishRotary(self, siteId = self._siteId):
+    def publishRotary(self, siteId = None):
+        if (siteId is None):
+            siteId = self._siteId
         self.publish(Topic.Led.rotary(siteId), value)
-    def publishSwipe(self, value, siteId = self._siteId):
+    def publishSwipe(self, value, siteId = None):
+        if (siteId is None):
+            siteId = self._siteId
         self.publish(Topic.Led.swipe(siteId), value)
 
-    def publishImage(self, filename, dir_, name, siteId = self._siteId):
+    def publishImage(self, filename, dir_, name, siteId = None):
+        if (siteId is None):
+            siteId = self._siteId
 
         with open(filename, "r") as f:
             content = f.read()
