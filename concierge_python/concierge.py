@@ -58,10 +58,10 @@ class Topic():
         _viewPong = '{}/pong'.format(_view)
         @staticmethod
         def viewPong(appId):
-            return _viewPong.format(appId)
+            return Topic.Apps._viewPong.format(appId)
         @staticmethod
         def viewPing(appId):
-            return _viewPing.format(appId)
+            return Topic.Apps._viewPing.format(appId)
     class Command():
         _rotary = 'concierge/commands/remote/rotary'
         _swipe = 'concierge/commands/remote/swipe'
@@ -165,10 +165,10 @@ class Concierge:
             self.event.on_ping += func
             self.subscribe(Topic.Apps.livePing, self._on_ping)
 
-    def subscribeView(self, func):
+    def subscribeView(self, app_id, func):
         if (func):
             self.event.on_view += func
-            self.subscribe(Topic.Apps.viewPing(self._siteId), self._on_view )
+            self.subscribe(Topic.Apps.viewPing(app_id), self._on_view )
 
     def subscribeTime(self, func):
         if (func):
@@ -208,8 +208,8 @@ class Concierge:
         print("{} on {}".format(msg, topic))
         self._client.publish(topic, msg)
 
-    def publishTimer(self, duration):
-        self.publish(Topic.timerLed, json.dumps({"value":duration}))
+    def publishTimer(self, duration, siteId = self._siteId):
+        self.publish(Topic.Led.timer(siteId), json.dumps({"value":duration}))
 
     def publishView(self, _id, payload):
         payload = {"result": payload}
@@ -219,27 +219,28 @@ class Concierge:
         payload = json.dumps({"result": app })
         self.publish(Topic.Apps.pong, payload)
 
-    def publishTime(self, value):
-        self.publish(Topic.Led.time, json.dumps({"duration":duration,
+    def publishTime(self, value, siteId = self._siteId):
+        self.publish(Topic.Led.time(siteId), json.dumps({"duration":duration,
                                                  "value" : 0}))
 
-    def publishWeather(self, cond, temp):
-        self.publish(Topic.Led.weather(self._siteId), json.dumps({
+    def publishWeather(self, cond, temp, siteId = self._siteId):
+        self.publish(Topic.Led.weather(siteId), json.dumps({
             "weather": cond,
             "temp": temp
         }))
 
-    def publishStopLed(self):
-        self.publish(Topic.Led.stop(self._siteId), '')
-    def publishRotary(self, value):
-        self.publish(Topic.Led.rotary(self._siteId), value)
-    def publishSwipe(self, value):
-        self.publish(Topic.Led.swipe(self._siteId), value)
+    def publishStopLed(self, siteId = self._siteId):
+        self.publish(Topic.Led.stop(siteId), '')
+    def publishRotary(self, siteId = self._siteId):
+        self.publish(Topic.Led.rotary(siteId), value)
+    def publishSwipe(self, value, siteId = self._siteId):
+        self.publish(Topic.Led.swipe(siteId), value)
 
-    def publishImage(self, filename, dir_, name):
+    def publishImage(self, filename, dir_, name, siteId = self._siteId):
+
         with open(filename, "r") as f:
             content = f.read()
-            client.publish(Topic.Led.add_image_send(self.siteId, dir_, name),
+            client.publish(Topic.Led.add_image_send(siteId, dir_, name),
                            bytearray(content))
     """
     utilities
@@ -255,7 +256,15 @@ class Concierge:
         self.publish("hermes/asr/stopListening",
                    json.dumps({"siteId" : self._siteId,
                                "sessionId" : sessionId}))
-
+    def getIdFromRoom(self, room, default = None):
+        try:
+            tmp = requests.get("http://localhost:3000/devices/search/{}".format(room));
+            if (not tmp.ok):
+                return default
+            data = json.loads(tmp.text)
+            return data.get('result', None)
+        except :
+            return default
     @staticmethod
     def getLang(default = "FR"):
         try:
@@ -266,4 +275,3 @@ class Concierge:
             return json.loads(tmp.text).upper().encode('ascii', 'ignore')
         except :
             return default
-
