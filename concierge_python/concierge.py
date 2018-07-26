@@ -88,7 +88,9 @@ class Concierge:
                             'on_stop',
                             'on_rotary',
                             'on_swipe',
-                            'on_image'))
+                            'on_image',
+                            'on_asr_start',
+                            'on_asr_stop'))
         if start:
             self._client.loop_start()
 
@@ -114,6 +116,10 @@ class Concierge:
         except:
             return None
         return data.get(key, None)
+    def _on_asr_start(self, client, userdata, msg):
+        self.event.on_asr_start(client, userdata, msg)
+    def _on_asr_stop(self, client, userdata, msg):
+        self.event.on_asr_stop(client, userdata, msg)
     def _on_ping(self, client, userdata, msg):
         self.event.on_ping()
     def _on_stop(self, client, userdata, msg):
@@ -157,6 +163,14 @@ class Concierge:
             self.topics += [topic]
         if (func):
             self._client.message_callback_add(topic, func)
+    def subscribeAsrStart(self, func):
+        if (func):
+            self.event.on_asr_start += func
+            self.subscribe('hermes/asr/startListening', self._on_asr_start)
+    def subscribeAsrStop(self, func):
+        if (func):
+            self.event.on_asr_stop += func
+            self.subscribe('hermes/asr/stopListening', self._on_asr_stop)
     def subscribeAnimation(self, func):
         if (func):
             self.event.on_animation += func
