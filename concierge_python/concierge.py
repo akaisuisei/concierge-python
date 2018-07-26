@@ -153,7 +153,8 @@ class Concierge:
     """
     def subscribe(self, topic, func = None):
         self._client.subscribe(topic)
-        self.topics += [topic]
+        if topic not in self.topics:
+            self.topics += [topic]
         if (func):
             self._client.message_callback_add(topic, func)
     def subscribeAnimation(self, func):
