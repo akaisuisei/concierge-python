@@ -117,10 +117,8 @@ class Concierge:
             return None
         return data.get(key, None)
     def _on_asr_start(self, client, userdata, msg):
-        print(msg.payload)
         self.event.on_asr_start(client, userdata, msg)
     def _on_asr_stop(self, client, userdata, msg):
-        print(msg.payload)
         self.event.on_asr_stop(client, userdata, msg)
     def _on_ping(self, client, userdata, msg):
         self.event.on_ping()
@@ -130,8 +128,8 @@ class Concierge:
         self.event.on_view()
     def _on_time(self, client, userdata, msg):
         duration = Concierge.get_value(msg.payload, 'duration')
-        duration = Concierge.get_value(msg.payload, 'value')
-        self.event.on_time(duration, 0)
+        value = Concierge.get_value(msg.payload, 'value')
+        self.event.on_time(duration, value)
     def _on_animation(self, client, userdata, msg):
         duration = Concierge.get_value(msg.payload, 'duration')
         animation = Concierge.get_value(msg.payload, 'animation')
@@ -238,11 +236,11 @@ class Concierge:
         payload = json.dumps({"result": app })
         self.publish(Topic.Apps.pong, payload)
 
-    def publishTime(self, value, siteId = None):
+    def publishTime(self, value = 0, duration = 10, siteId = None):
         if (siteId is None):
             siteId = self._siteId
         self.publish(Topic.Led.time(siteId), json.dumps({"duration":duration,
-                                                 "value" : 0}))
+                                                 "value" : value}))
 
     def publishWeather(self, cond, temp, siteId = None):
         if (siteId is None):
@@ -300,7 +298,6 @@ class Concierge:
     def getLang(default = "FR"):
         try:
             tmp = requests.get("http://localhost:3000/assistant/lang");
-            print(tmp)
             if (not tmp.ok):
                 return default
             return json.loads(tmp.text).upper().encode('ascii', 'ignore')
