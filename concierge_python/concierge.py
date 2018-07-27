@@ -117,8 +117,10 @@ class Concierge:
             return None
         return data.get(key, None)
     def _on_asr_start(self, client, userdata, msg):
+        print(msg.payload)
         self.event.on_asr_start(client, userdata, msg)
     def _on_asr_stop(self, client, userdata, msg):
+        print(msg.payload)
         self.event.on_asr_stop(client, userdata, msg)
     def _on_ping(self, client, userdata, msg):
         self.event.on_ping()
@@ -158,15 +160,15 @@ class Concierge:
     Subscribe
     """
     def subscribe(self, topic, func = None):
-        self._client.subscribe(topic)
         if topic not in self.topics:
             self.topics += [topic]
+            self._client.subscribe(topic)
         if (func):
             self._client.message_callback_add(topic, func)
     def subscribeAsrStart(self, func):
         if (func):
             self.event.on_asr_start += func
-            self.subscribe('hermes/asr/startListening', self._on_asr_start)
+            self.subscribe("hermes/dialogueManager/sessionStarted", self._on_asr_start)
     def subscribeAsrStop(self, func):
         if (func):
             self.event.on_asr_stop += func
@@ -278,7 +280,7 @@ class Concierge:
     def play_wave(self, siteId, requestId, filename):
         utils.play_wave(self._client, siteId, requestId, filename)
     def startHotword(self, modelId = 'default'):
-        self.publish("hermes/hotword/default/detected",
+        self.publish("hermes/hotword/{}/detected".format(self._siteId),
                    json.dumps({"siteId" : self._siteId,
                                "modelId" : modelId}))
     def stopHotword(self, sessionId):
