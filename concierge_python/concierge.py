@@ -291,7 +291,8 @@ class Concierge:
             if (not tmp.ok):
                 return default
             data = json.loads(tmp.text)
-            return data.get('result', None)
+            data = data.get('result', None)
+            return [x.replace('@mqtt', '') for x in data]
         except :
             return default
     @staticmethod
