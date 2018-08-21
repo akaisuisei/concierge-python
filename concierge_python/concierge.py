@@ -230,7 +230,7 @@ class Concierge:
 
     def publishView(self, _id, payload):
         payload = {"result": payload}
-        self.publish(Topic.getViewPong(_id), json.dumps(payload))
+        self.publish(Topic.Apps.viewPong(_id), json.dumps(payload))
 
     def publishPong(self, app):
         payload = json.dumps({"result": app })
