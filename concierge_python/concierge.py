@@ -2,7 +2,7 @@ from events import Events
 import json
 import requests
 import paho.mqtt.client as mqtt
-import utils
+import concierge_python.utils
 def p_subscribe(topic):
     def wrapper(func):
         if (func):
@@ -71,6 +71,11 @@ class Topic():
         @staticmethod
         def swipe(siteId):
             return Topic.Command._swipe.format(siteId)
+    class Utils():
+        _play = 'hermes/audioServer/{}/playBytes/#'
+        @staticmethod
+        def getPlay(site_id):
+            return Topic.Utils._play.format(site_id)
 
 class Concierge:
     def __init__(self, hostname, siteId = "default", start = True):
@@ -90,7 +95,8 @@ class Concierge:
                             'on_swipe',
                             'on_image',
                             'on_asr_start',
-                            'on_asr_stop'))
+                            'on_asr_stop',
+                            'on_play_bytes'))
         if start:
             self._client.loop_start()
 
@@ -116,6 +122,9 @@ class Concierge:
         except:
             return None
         return data.get(key, None)
+    def _on_play_bytes(self, client, userdata, msg):
+        self.event.on_play_bytes(msg.payload, msg.topic.split('/')[-1])
+
     def _on_asr_start(self, client, userdata, msg):
         self.event.on_asr_start(client, userdata, msg)
     def _on_asr_stop(self, client, userdata, msg):
@@ -213,6 +222,11 @@ class Concierge:
         if (func):
             self.event.on_image += func
             self.subscribe(Topic.Led.add_image(self._siteId), self._on_image)
+    def subscribePlayBytes(self, func):
+        if (func):
+            self.event.on_play_bytes += func
+            self.subscribe(Topic.Utils.getPlay(self._siteId),
+                           self._on_play_bytes)
 
     """
     Publish
