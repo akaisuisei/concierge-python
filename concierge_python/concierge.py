@@ -222,10 +222,12 @@ class Concierge:
         if (func):
             self.event.on_image += func
             self.subscribe(Topic.Led.add_image(self._siteId), self._on_image)
-    def subscribePlayBytes(self, func):
+    def subscribePlayBytes(self, func, siteId = None):
+        if siteId is None:
+            siteId = self._siteId
         if (func):
             self.event.on_play_bytes += func
-            self.subscribe(Topic.Utils.getPlay(self._siteId),
+            self.subscribe(Topic.Utils.getPlay(siteId),
                            self._on_play_bytes)
 
     """
