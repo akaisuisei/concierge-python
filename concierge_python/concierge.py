@@ -2,7 +2,8 @@ from events import Events
 import json
 import requests
 import paho.mqtt.client as mqtt
-import concierge_python.utils
+import concierge_python.utils as utils
+
 def p_subscribe(topic):
     def wrapper(func):
         if (func):
