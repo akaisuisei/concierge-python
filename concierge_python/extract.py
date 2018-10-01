@@ -14,8 +14,8 @@ class Extract:
     def durations(slots):
         tag = []
         if slots is not None:
-            for tmp in slots:
-                duration = tmp.slot_value.value
+            for tmp in slots.all():
+                duration = tmp.value
                 duration = duration.hours * 3600 + duration.minutes * 60 + duration.seconds
                 tag += [duration]
         return tag
@@ -28,8 +28,8 @@ class Extract:
     def values(slots):
         tag = []
         if slots is not None:
-            for tmp in slots:
-                tag.append(tmp.slot_value.value.value)
+            for tmp in slots.all():
+                tag.append(tmp.value)
         return tag
 
     @staticmethod
@@ -48,8 +48,8 @@ class Extract:
     def timeSlots(slots):
         tag = []
         if slots is not None:
-            for slot in slots:
-                value = slot.slot_value.value
+            for slot in slots.all():
+                value = slot.value
                 if type(value) == hermes_python.ontology.TimeIntervalValue :
                     t0 = Extract._str_to_datetime(value.from_date)
                     t1 = Extract._str_to_datetime(value.to_date)
