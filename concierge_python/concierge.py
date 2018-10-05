@@ -77,6 +77,9 @@ class Topic():
         @staticmethod
         def getPlay(site_id):
             return Topic.Utils._play.format(site_id)
+        soundFeedbackOn = "hermes/feedback/sound/toggleOn"
+        soundFeedbackOff = "hermes/feedback/sound/toggleOff"
+        startSession = "hermes/dialogueManager/startSession"
 
 class Concierge:
     def __init__(self, hostname, siteId = "default", start = True):
@@ -124,7 +127,7 @@ class Concierge:
             return None
         return data.get(key, None)
     def _on_play_bytes(self, client, userdata, msg):
-        self.event.on_play_bytes(msg.payload, msg.topic.split('/')[-1])
+        self.event.on_play_bytes(msg.payload, msg.topic.split('/')[-1], self._siteId)
 
     def _on_asr_start(self, client, userdata, msg):
         self.event.on_asr_start(client, userdata, msg)
@@ -239,7 +242,25 @@ class Concierge:
     def publish(self, topic, msg):
         print("{} on {}".format(msg, topic))
         self._client.publish(topic, msg)
-
+    
+    def publishStartSession(self):
+        self.publish(Topic.Utils.startSession, json.dumps(
+            {
+                "siteId" : self._siteId,
+                "init": { 
+                    "type": "action",
+                    "text": None,
+                    "canBeEnqueued": True,
+                    "intentFilter": None},
+                "customData": None
+            }))
+    
+    def publishFeedbackOn(self):
+        self.publish(Topic.Utils.soundFeedbackOn, json.dumps({"siteId" : self._siteId}))
+    
+    def publishFeedbackOff(self):
+        self.publish(Topic.Utils.soundFeedbackOff, json.dumps({"siteid" : self._siteId}))
+    
     def publishTimer(self, duration, siteId = None):
         if (siteId is None):
             siteId = self._siteId
