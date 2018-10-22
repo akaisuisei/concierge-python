@@ -259,7 +259,7 @@ class Concierge:
         self.publish(Topic.Utils.soundFeedbackOn, json.dumps({"siteId" : self._siteId}))
     
     def publishFeedbackOff(self):
-        self.publish(Topic.Utils.soundFeedbackOff, json.dumps({"siteid" : self._siteId}))
+        self.publish(Topic.Utils.soundFeedbackOff, json.dumps({"siteId" : self._siteId}))
     
     def publishTimer(self, duration, siteId = None):
         if (siteId is None):
