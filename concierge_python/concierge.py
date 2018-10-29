@@ -74,9 +74,13 @@ class Topic():
             return Topic.Command._swipe.format(siteId)
     class Utils():
         _play = 'hermes/audioServer/{}/playBytes/#'
+        _playFinished = 'hermes/audioServer/{}/playFinished'
         @staticmethod
         def getPlay(site_id):
             return Topic.Utils._play.format(site_id)
+        @staticmethod
+        def getPlayFinished(site_id):
+            return Topic.Utils._playFinished.format(site_id)
         soundFeedbackOn = "hermes/feedback/sound/toggleOn"
         soundFeedbackOff = "hermes/feedback/sound/toggleOff"
         startSession = "hermes/dialogueManager/startSession"
@@ -243,6 +247,13 @@ class Concierge:
         print("{} on {}".format(msg, topic))
         self._client.publish(topic, msg)
     
+    def publishPlayFinished(self, id):
+        self.publish(Topic.Utils.getPlayFinished(self._siteId), json.dumps(
+            {
+                "siteId" : self._siteId,
+                "id" : id,
+                "sessionId": None
+            }))
     def publishStartSession(self):
         self.publish(Topic.Utils.startSession, json.dumps(
             {
